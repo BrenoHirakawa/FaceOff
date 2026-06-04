@@ -37,7 +37,7 @@ while True:
 
     altura_original, largura_original = frame.shape[:2]
 
-    img = cv2.resize(frame, (320, 320))
+    img = cv2.resize(frame, (256, 256))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = img.astype(np.float32) / 255.0
