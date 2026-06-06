@@ -23,6 +23,9 @@ cap.set(4, 480)
 ultimo_envio = 0
 INTERVALO_ENVIO = 5 
 
+ultima_quantidade = -1
+max_pessoas = 0
+
 
 while True:
 
