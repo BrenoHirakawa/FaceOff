@@ -28,6 +28,8 @@ while True:
 
     ret, frame = cap.read()
 
+    inicio_frame = time.time()
+
     if not ret:
         break
 
@@ -66,11 +68,11 @@ while True:
         w = output[2, i]
         h = output[3, i]
 
-        x1 = int((cx - w / 2) * largura_original / 320)
-        y1 = int((cy - h / 2) * altura_original / 320)
+        x1 = int((cx - w / 2) * largura_original / 256)
+        y1 = int((cy - h / 2) * altura_original / 256)
 
-        largura_box = int(w * largura_original / 320)
-        altura_box = int(h * altura_original / 320)
+        largura_box = int(w * largura_original / 256)
+        altura_box = int(h * altura_original / 256)
 
         boxes.append([
             x1,
@@ -106,24 +108,40 @@ while True:
                 2
             )
 
-    cv2.putText(
-        frame,
-        f"Pessoas: {pessoas}",
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
-        2
-    )
+    # cv2.putText(
+    #     frame,
+    #     f"Pessoas: {pessoas}",
+    #     (10, 30),
+    #     cv2.FONT_HERSHEY_SIMPLEX,
+    #     1,
+    #     (0, 255, 0),
+    #     2
+    # )
 
-    cv2.imshow("FaceOff", frame)
+    # cv2.imshow("FaceOff", frame)
+
+    max_pessoas = max(max_pessoas, pessoas)
+
+    fps = 1 / (time.time() - inicio_frame)
+
+    print(
+        f"Pessoas={pessoas} | Máximo={max_pessoas} | FPS={fps:.2f}"
+    )
 
     agora = time.time()
 
-    if agora - ultimo_envio >= INTERVALO_ENVIO:
+    deve_enviar = (
+        pessoas != ultima_quantidade
+        or
+        (agora - ultimo_envio >= INTERVALO_ENVIO)
+    )
+
+    if deve_enviar:
 
         dados = {
             "quantidade": pessoas,
+            "maximo": max_pessoas,
+            "fps": round(fps, 2),
             "ambiente": "laboratorio",
             "timestamp": int(agora)
         }
@@ -137,17 +155,24 @@ while True:
             )
 
             print(
-                f"[FIREBASE] {response.status_code} | Pessoas: {pessoas}"
+                f"[FIREBASE] {response.status_code}"
             )
+
+            ultima_quantidade = pessoas
+            ultimo_envio = agora
 
         except Exception as e:
 
-            print(f"Erro ao enviar: {e}")
+            print(
+                f"Erro ao enviar: {e}"
+            )
 
-        ultimo_envio = agora
+    # if cv2.waitKey(1) == 27: 
+    #     break
 
-    if cv2.waitKey(1) == 27:
-        break
+    time.sleep(0.01)
+
+
 
 cap.release()
 cv2.destroyAllWindows()
